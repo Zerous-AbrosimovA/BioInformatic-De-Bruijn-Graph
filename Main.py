@@ -8,7 +8,6 @@ class BuildGraph:
         self.outputFASTA = outputFASTA
         self.outputGFA = outputGFA
         self.graph = defaultdict(lambda: defaultdict(lambda: ""))
-        self.originCompressedGraph = defaultdict(lambda: defaultdict(lambda: ""))
         self.depth = defaultdict(lambda: defaultdict(lambda: 0))
         self.inDegree = defaultdict(lambda: 0)
         self.outDegree = defaultdict(lambda: 0)
@@ -58,8 +57,8 @@ class BuildGraph:
         self.visited.add((u, v))
         while (self.inDegree[v] == 1 and self.outDegree[v] == 1 and
                not self.visited.__contains__((v, list(self.graph[v].keys())[0]))):
-            self.visited.add((u, v))
             neighbor: str = list(self.graph[v].keys())[0]
+            self.visited.add((v, neighbor))
             currentPath += self.graph[v][neighbor][-1]
             depth += self.depth[v][neighbor]
             totalEdges += 1
@@ -80,7 +79,7 @@ class BuildGraph:
         avgCoverage: float = totalCoverage / len(innerGraph)
         clearedGraph: list = []
         for i in innerGraph:
-            if i["coverage"] >= avgCoverage * 0.1 or (self.inDegree[i["start"]] != 0 or self.outDegree[i["end"]] != 0):
+            if i["coverage"] >= avgCoverage * 0.3 and (self.inDegree[i["start"]] != 0 or self.outDegree[i["end"]] != 0):
                 clearedGraph.append(i)
         self._rebuildGraph(clearedGraph)
 
@@ -126,8 +125,8 @@ class BuildGraph:
                             index += 1
 
 
-graphClass = BuildGraph(11, "output.fasta", "output.gfa")
-for record in SeqIO.parse("ecoli_1k.fna.txt", "fasta"):
+graphClass = BuildGraph(51, "output.fasta", "output.gfa")
+for record in SeqIO.parse("ecoli_reads.fastq.txt", "fastq"):
     graphClass.add(record.seq)
 
 graphClass.createCompressedGraph()
